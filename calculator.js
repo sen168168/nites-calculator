@@ -227,16 +227,14 @@ function createSubjectCards() {
             <div class="subject-label">${subjectTranslations[subject] || subject}</div>
             <div class="input-group">
                 <input 
-                inputmode="numeric" 
-                pattern="[0-9]*" 
-                type="text"
+                type="tel" 
+                inputmode="numeric"
                 class="score-input" 
                 id="subject-${index}"
-                min="0" 
-                max="${maxScore}" 
-                placeholder="0–${maxScore}"
+                placeholder="0–${maxScore}" 
                 data-subject="${subject}"
                 >
+
 
                 <div class="grade-display empty" id="grade-${index}">-</div>
             </div>
@@ -244,7 +242,7 @@ function createSubjectCards() {
         subjectGrid.appendChild(card);
     });
 
-    setupScoreInputs(); // ✅ make sure this is here
+    setupScoreInputs(); 
 }
 
 
