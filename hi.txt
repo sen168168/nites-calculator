@@ -1,0 +1,294 @@
+// Grading Systems Configuration
+const gradingSystems = {
+    sciences: {
+        name: 'Sciences',
+        subjects: ['Mathematics', 'Khmer', 'Physics', 'Chemistry', 'Biology', 'English', 'History'],
+        maxScores: {
+            Mathematics: 125,
+            Khmer: 75,
+            Physics: 75,
+            Chemistry: 75,
+            Biology: 75,
+            English: 50,
+            History: 50
+        },
+        scale: [
+            { grade: 'A', min: 427, max: 475 },
+            { grade: 'B', min: 380, max: 426 },
+            { grade: 'C', min: 332, max: 379 },
+            { grade: 'D', min: 286, max: 331 },
+            { grade: 'E', min: 237, max: 285 },
+            { grade: 'F', min: 0, max: 236 }
+        ]
+    },
+    socials: {
+        name: 'Socials',
+        subjects: ['Khmer', 'Mathematic', 'Geographic', 'Earth', 'Moral', 'History', 'English'],
+        maxScores: {
+            Khmer: 125,
+            Mathematic: 75,
+            Geographic: 75,
+            Earth: 75,
+            Moral: 75,
+            History: 50,
+            English: 50
+        },
+        scale: [
+            { grade: 'A', min: 427, max: 475 },
+            { grade: 'B', min: 380, max: 299 },
+            { grade: 'C', min: 332, max: 249 },
+            { grade: 'D', min: 286, max: 331 },
+            { grade: 'E', min: 237, max: 285 },
+            { grade: 'F', min: 0, max: 236 }
+        ]
+    }
+};
+
+// App State
+let currentSystem = 'sciences';
+let scores = {};
+
+// DOM
+const subjectGrid = document.getElementById('subjectGrid');
+const totalScoreElement = document.getElementById('totalScore');
+const finalGradeElement = document.getElementById('finalGrade');
+const statusElement = document.getElementById('status');
+const gradingScaleElement = document.getElementById('gradingScale');
+
+// Helpers
+function getSubjects() {
+    return gradingSystems[currentSystem].subjects || [];
+}
+
+function getTotalMaxScore() {
+    const maxScores = gradingSystems[currentSystem].maxScores;
+    return getSubjects().reduce((sum, subject) => sum + (maxScores[subject] || 100), 0);
+}
+
+// INIT
+function init() {
+    createSubjectCards();
+    renderGradingScale();
+    setupSystemToggleListeners();
+    calculateResults();
+}
+
+// Create Subject Cards
+function createSubjectCards() {
+    subjectGrid.innerHTML = '';
+    const maxScores = gradingSystems[currentSystem].maxScores;
+
+    getSubjects().forEach((subject, index) => {
+        const maxScore = maxScores[subject] || 100;
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.innerHTML = `
+            <div class="subject-label">${subject}</div>
+            <div class="input-group">
+                <input 
+                    type="number" 
+                    class="score-input" 
+                    id="subject-${index}"
+                    min="0" 
+                    max="${maxScore}" 
+                    placeholder="0–${maxScore}"
+                    data-subject="${subject}"
+                >
+                <div class="grade-display empty" id="grade-${index}">-</div>
+            </div>
+        `;
+        subjectGrid.appendChild(card);
+    });
+
+    setupScoreInputs(); // ✅ make sure this is here
+}
+
+
+// Input Listeners
+function setupScoreInputs() {
+    document.querySelectorAll('.score-input').forEach(input => {
+        input.addEventListener('input', function () {
+            const subject = this.getAttribute('data-subject');
+            const maxScore = gradingSystems[currentSystem].maxScores[subject] || 100;
+            let score = parseFloat(this.value) || 0;
+
+            // Clamp
+            if (score < 0) score = 0;
+            if (score > maxScore) score = maxScore;
+            this.value = score;
+
+            updateSubjectScore(subject, score);
+        });
+    });
+}
+
+// Toggle Listeners
+function setupSystemToggleListeners() {
+    document.querySelectorAll('.toggle-option').forEach(option => {
+        option.addEventListener('click', function () {
+            const system = this.getAttribute('data-system');
+            switchGradingSystem(system);
+        });
+    });
+}
+
+// Switch system
+function switchGradingSystem(system) {
+    currentSystem = system;
+
+    // Update active toggle UI
+    document.querySelectorAll('.toggle-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    document.querySelector(`[data-system="${system}"]`).classList.add('active');
+
+    // 🔁 Reset everything
+    scores = {};                          // reset stored scores
+    subjectGrid.innerHTML = '';           // clear input UI
+    gradingScaleElement.innerHTML = '';   // clear scale
+
+    // Re-render with new system data
+    createSubjectCards();                 // rebuild input fields
+    renderGradingScale();                 // render new scale
+    calculateResults();                   // reset results
+}
+
+
+// Update score
+function updateSubjectScore(subject, score) {
+    if (!getSubjects().includes(subject)) return; // ✅ prevent crash
+
+    scores[subject] = score;
+
+    const index = getSubjects().indexOf(subject);
+    const gradeElement = document.getElementById(`grade-${index}`);
+    const grade = calculateIndividualGrade(subject, score);
+
+    gradeElement.textContent = grade;
+    gradeElement.className = `grade-display ${grade === '-' ? 'empty' : ''}`;
+
+    calculateResults();
+}
+
+
+// Individual grade
+function calculateIndividualGrade(subject, score) {
+    if (!score || score === 0) return '-';
+
+    const maxScore = gradingSystems[currentSystem].maxScores[subject] || 100;
+    const scale = gradingSystems[currentSystem].scale;
+
+    const scaledScore = (score / maxScore) * getTotalMaxScore();
+
+    for (let gradeInfo of scale) {
+        if (scaledScore >= gradeInfo.min && scaledScore <= gradeInfo.max) {
+            return gradeInfo.grade;
+        }
+    }
+
+    return 'F';
+}
+
+// Final grade
+function calculateFinalGrade(totalScore) {
+    const scale = gradingSystems[currentSystem].scale;
+    for (let gradeInfo of scale) {
+        if (totalScore >= gradeInfo.min && totalScore <= gradeInfo.max) {
+            return gradeInfo.grade;
+        }
+    }
+    return 'F';
+}
+
+// Results
+function calculateResults() {
+    const maxScores = gradingSystems[currentSystem].maxScores;
+    let total = 0;
+    let maxTotal = 0;
+
+    getSubjects().forEach(subject => {
+        total += scores[subject] || 0;
+        maxTotal += maxScores[subject] || 100;
+    });
+
+    const adjustedTotal = Math.max(0, total - 25);
+    const grade = calculateFinalGrade(adjustedTotal);
+    const status = grade !== 'F' ? 'ជាប់' : 'ធ្លាក់';
+
+    // totalScoreElement.textContent = `${total} / ${maxTotal}`;
+    totalScoreElement.textContent = `${adjustedTotal}`;
+    finalGradeElement.textContent = grade;
+    statusElement.textContent = status;
+    statusElement.className = `result-value status ${status.toLowerCase()}`;
+}
+
+// Grading scale
+function renderGradingScale() {
+    const scale = gradingSystems[currentSystem].scale;
+    gradingScaleElement.innerHTML = '';
+
+    scale.forEach(gradeInfo => {
+        const item = document.createElement('div');
+        item.className = 'scale-item';
+        item.innerHTML = `
+            <div class="scale-grade">${gradeInfo.grade}</div>
+            <div class="scale-range">${gradeInfo.min}–${gradeInfo.max}</div>
+        `;
+        gradingScaleElement.appendChild(item);
+    });
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', init);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div class="grading-scale">
+            <div class="scale-title">Grading Scale</div>
+            <div class="scale-grid" id="gradingScale">
+                <!-- Grading scale will be generated by JavaScript -->
+            </div>
+        </div>
+
+
+        
+// Grading scale
+function renderGradingScale() {
+    const scale = gradingSystems[currentSystem].scale;
+    gradingScaleElement.innerHTML = '';
+
+    scale.forEach(gradeInfo => {
+        const item = document.createElement('div');
+        item.className = 'scale-item';
+        item.innerHTML = `
+            <div class="scale-grade">${gradeInfo.grade}</div>
+            <div class="scale-range">${gradeInfo.min}–${gradeInfo.max}</div>
+        `;
+        gradingScaleElement.appendChild(item);
+    });
+}
