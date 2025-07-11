@@ -227,13 +227,18 @@ function createSubjectCards() {
             <div class="subject-label">${subjectTranslations[subject] || subject}</div>
             <div class="input-group">
                 <input 
-                type="tel" 
+                type="number" 
                 inputmode="numeric"
+                autocomplete="off
                 class="score-input" 
-                id="subject-${index}"
+                id="subject-${index}" 
+                min="0" 
+                max="${maxScore}" 
                 placeholder="0–${maxScore}" 
-                data-subject="${subject}"
+                data-subject="${subject}" 
+                style="appearance: textfield; -moz-appearance: textfield; -webkit-appearance: none;"
                 >
+
 
 
                 <div class="grade-display empty" id="grade-${index}">-</div>
