@@ -229,7 +229,6 @@ function createSubjectCards() {
                 <input 
                 type="number" 
                 inputmode="numeric"
-                autocomplete="off
                 class="score-input" 
                 id="subject-${index}" 
                 min="0" 
