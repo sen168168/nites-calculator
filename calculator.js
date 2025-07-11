@@ -227,14 +227,17 @@ function createSubjectCards() {
             <div class="subject-label">${subjectTranslations[subject] || subject}</div>
             <div class="input-group">
                 <input 
-                    type="number" 
-                    class="score-input" 
-                    id="subject-${index}"
-                    min="0" 
-                    max="${maxScore}" 
-                    placeholder="0–${maxScore}"
-                    data-subject="${subject}"
+                inputmode="numeric" 
+                pattern="[0-9]*" 
+                type="text"
+                class="score-input" 
+                id="subject-${index}"
+                min="0" 
+                max="${maxScore}" 
+                placeholder="0–${maxScore}"
+                data-subject="${subject}"
                 >
+
                 <div class="grade-display empty" id="grade-${index}">-</div>
             </div>
         `;
