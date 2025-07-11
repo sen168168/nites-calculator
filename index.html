@@ -62,11 +62,35 @@
         </div>
     </div>
 
+
+
+
+
+
+
+
+
+
+    
+
     <script src="calculator.js"></script>
     <script>
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("/sw.js");
         }
+
+        if (/iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()) && !window.navigator.standalone) {
+            alert("Install this app: Tap the Share icon in Safari, then choose 'Add to Home Screen'.");
+        }
+
     </script>
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js")
+            .then(() => console.log("✅ Service Worker registered"))
+            .catch(error => console.error("❌ Service Worker error:", error));
+        }
+    </script>
+
 </body>
 </html>
